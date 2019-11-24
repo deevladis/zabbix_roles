@@ -1,0 +1,63 @@
+---
+  - name: add grafana repositiry
+    copy:
+      src: grafana.repo
+      dest: /etc/yum.repos.d/
+
+
+  - name: install grafana
+    dnf:
+      name: grafana
+
+
+  - name: open firewall port
+    firewalld:
+            port: 3000/tcp
+            permanent: true
+            state: enabled
+
+
+  - name: restart firewall
+    service:
+      name: firewalld
+      state: restarted
+
+
+  - name: start and enable grafana service
+    service:
+      name: grafana-server
+      state: started
+      enabled: yes
+            
+
+  - name: Install/update Grafana piechart panel plugin
+    grafana_plugin:
+      name: alexanderzobnin-zabbix-app
+      version: latest
+      state: present
+          
+  
+
+ 
+      # - name: Create elasticsearch datasource
+      #   grafana_datasource:
+      #     name: "datasource-zabbix"
+      #     grafana_url: "https://""{{ groups['grafana'][0] }}"":3000"
+      #     sslmode: disable
+      #     grafana_user: "admin"
+      #     grafana_password: "admin"
+      #     org_id: "1"
+      #     ds_type: "alexanderzobnin-zabbix-datasource"
+      #     url: "http://10.26.34.221:10050"
+      #     user: "vlada"
+      #     password: "zabpassword"
+      #     trends: yes
+      #     tls_skip_verify: yes
+      #     use_proxy: no
+      #     validate_certs: no
+      #     is_default: yes
+      #     access: direct
+   
+        
+
+

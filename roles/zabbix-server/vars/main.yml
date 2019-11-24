@@ -1,0 +1,5 @@
+worker_processes: auto
+worker_connections: 1024
+zabbix_server_version: 4.0
+nginx_user: nginx
+zabbix_db_host: "{{ groups['zabbix_db'][0] }}"

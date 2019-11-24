@@ -1,0 +1,214 @@
+---
+  - name: open firewall ports for nginx
+    firewalld:
+      port: 80/tcp
+      permanent: true
+      state: enabled
+  
+
+  - name: open ports for zabbix-server
+    firewalld:
+      port: 10050-10051/tcp
+      permanent: true
+      state: enabled
+
+
+  - name: add services to firewall
+    firewalld:
+      service: "{{ item }}"
+      permanent: yes
+      state: enabled
+    with_items:
+      - http
+      - https
+
+
+  - name: disable selinux
+    selinux:
+      state: disabled
+
+  - name: restart firewall
+    service:
+      name: firewalld
+      state: restarted
+
+
+  - name: restarting
+    reboot:
+
+
+  - name: install epel-release
+    dnf:
+      name: epel-release
+      state: latest
+
+
+
+  - name: add nginx repositiry
+    copy:
+      src: nginx.repo
+      dest: /etc/yum.repos.d/
+
+
+  - name: install nginx web server
+    dnf:
+      name: nginx
+      state: present
+  
+
+
+  - name: replace configs for nginx
+    template:
+      src: nginx.conf
+      dest: /etc/nginx/nginx.conf      
+
+  - name: start nginx
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+
+
+
+  - name: install php modules
+    dnf:
+      name:
+        - php
+        - php-fpm
+        - php-cli
+        - php-pear
+        - php-cgi
+        - php-common
+        - php-mbstring
+        - php-snmp
+        - php-gd
+        - php-xml
+        - php-mysqlnd
+        - php-gettext
+        - php-bcmath
+        - php-json
+        - php-ldap
+      state: latest
+
+ 
+  - name: enable php-fpm
+    service:
+      name: php-fpm
+      state: started
+      enabled: yes
+
+  
+
+
+  - name: add zabbix repo
+    yum:
+      name: https://repo.zabbix.com/zabbix/{{zabbix_server_version}}/rhel/8/x86_64/zabbix-release-{{zabbix_server_version}}-2.el8.noarch.rpm
+
+
+
+  - name: install zabbix server
+    yum:
+      name:
+        - zabbix-server-mysql
+
+
+
+  - name: install zabbix-web
+    yum:
+      name:
+        - zabbix-web-mysql
+
+
+ 
+  - name: add tlegram script
+    copy:
+      src: telegram.sh
+      dest: /usr/lib/zabbix/alertscripts/
+      mode: 'a+x'
+  - name: replace configs for zabbix-server
+    template:
+      src: zabbix_server.conf
+      dest: /etc/zabbix/zabbix_server.conf
+
+  - name: replace configs for zabbix php
+    template:
+      src: zabbix.conf.php
+      dest: /etc/zabbix/web/zabbix.conf.php 
+    
+      # - name: 'replace serverActive in config file with appropriate'
+      #   replace:
+      #     path: /etc/zabbix/zabbix_server.conf
+      #     regexp: '(^DBHost=)(.*)$'
+      #     replace: DBHost={{ item }}
+      #   with_items:
+      #     - "{{ groups['zabbix_db'] }}"
+      #   
+      # - name: 'replace zabbix server in config file with appropriate'
+      #   replace:
+      #     path: /etc/zabbix/zabbix_server.conf
+      #     regexp: '(^Server=)(.*)$'
+      #     replace: Server= "{{ item }}"
+      #   with_items:
+      #     - "{{ groups['zabbix_db'] }}"
+
+
+  - name: Display all variables/facts known for a host
+    debug:
+      var: "{{ groups['zabbix_db'][0] }}"
+
+
+  - name: start zabbix server
+    service:
+      name: zabbix-server
+      state: started
+      enabled: yes
+
+
+
+  - name: replace configs for zabbix nginx 
+    template:
+      src: zabbix.conf
+      dest: /etc/php-fpm.d/zabbix.conf
+
+
+
+  - name: restart  php-fpm
+    service:
+      name: php-fpm
+      state: restarted
+
+
+      
+  - name: replace configs for zabbix nginx default
+    template:
+      src: default.conf
+      dest: /etc/nginx/conf.d/default.conf
+
+ 
+
+
+  - name: Change file ownership, group and permissions for nginx
+    file:
+      path: /var/lib/php/session
+      owner: nginx
+      group: nginx
+      recurse: yes
+
+
+  - name: change file ownerrship, group and permissions for nginx
+    file:
+      path: /etc/zabbix/web
+      owner: nginx
+      group: nginx
+      recurse: yes
+                              
+  
+
+  - name: restart nginx
+    service: name=nginx state=restarted
+
+
+
+
+
+    

@@ -1,0 +1,4 @@
+grafana_ip: "0.0.0.0"
+grafana_port: 3000
+grafana_nginx_ssl: false
+

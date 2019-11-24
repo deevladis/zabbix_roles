@@ -1,0 +1,30 @@
+---
+  - name: creadte database
+    hosts: zabbix_db
+    roles:
+      - python
+      - db
+     
+    
+  - name: install zabix_srver
+    hosts: zabbix_server
+    vars: 
+    # nginx_user: nginx
+    #zabbix_db_host: "{{ groups['zabbix_db'][0] }}" 
+    roles:      
+      - zabbix-server
+         
+    
+    
+    
+  - name: install zabbix agents
+    hosts: all
+    roles: 
+      - install-agent      
+      - zabbix-agent
+
+
+  - name: install grafana
+    hosts: grafana
+    roles:
+            - grafana

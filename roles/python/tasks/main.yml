@@ -1,0 +1,13 @@
+---
+  - name: Install python  packages
+    yum:
+      name: ['python3-pip', 'python2-pip']
+  
+
+
+  - name: install python connector
+    yum:
+      name: ['python2-PyMySQL', 'python3-PyMySQL']
+      state: present
+      #executable: pip2 
+

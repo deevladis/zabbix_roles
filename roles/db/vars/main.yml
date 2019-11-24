@@ -1,0 +1,2 @@
+mariadb_ver: 10.3
+zabbix_server: "{{ groups['zabbix_server'][0] }}"

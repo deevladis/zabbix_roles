@@ -1,0 +1,140 @@
+--- 
+  - name: install pips
+    yum:
+      name: ['python2-pip', 'python3-pip']
+ 
+  - name: instal zabbix-api
+    pip:
+      executable: pip3     
+      name: zabbix-api
+     
+ 
+  - name: add agents host to server      
+    zabbix_host:
+      server_url: http://{{ groups['zabbix_server'][0] }}
+      login_user: vlada
+      login_password: zabpassword
+      host_name: "{{ inventory_hostname }}"
+      visible_name: "{{ group_names }}: {{ inventory_hostname}}"
+      host_groups:
+        - 'Linux servers'
+      link_templates:
+        - 'Template OS Linux'
+      status: enabled
+      state: present
+      inventory_mode: automatic
+      ipmi_authtype: 1
+      ipmi_privilege: 4
+      ipmi_username: vlada
+      ipmi_password: zabpassword
+      interfaces:
+        -        
+          type: 1
+          main: 1
+          useip: 1
+          ip: "{{ inventory_hostname }}"
+          dns: ""
+          port: 10050
+    when:
+      - inventory_hostname not in groups['zabbix_server']
+      - inventory_hostname not in groups['zabbix_db']
+
+
+
+
+  - name: add zabbix-server agent to server to 
+    zabbix_host:
+      server_url: http://{{ groups['zabbix_server'][0] }}
+      login_user: vlada
+      login_password: zabpassword
+      host_name: "{{ inventory_hostname }}"
+      visible_name: "{{ group_names }}: {{ inventory_hostname}}"
+
+      host_groups:
+        - 'Linux servers'
+        - 'Zabbix servers'
+      link_templates:
+        - 'Template OS Linux'
+        - 'Template App Zabbix Server'
+      status: enabled
+      state: present
+      inventory_mode: automatic
+      ipmi_authtype: 1
+      ipmi_privilege: 4
+      ipmi_username: vlada
+      ipmi_password: zabpassword
+      interfaces:
+        - 
+          type: 1
+          main: 1
+          useip: 1
+          ip: "{{ inventory_hostname }}"
+          dns: ""
+          port: 10050
+
+    when: inventory_hostname  in groups['zabbix_server']
+
+
+
+
+  - name: add db-shape agents to server
+    zabbix_host:
+      server_url: http://{{ groups['zabbix_server'][0] }} 
+      login_user: vlada
+      login_password: zabpassword
+      host_name: "{{ inventory_hostname }}"
+      visible_name: "{{ group_names }}: {{ inventory_hostname}}"
+      host_groups:
+        - 'Linux servers'
+        - 'Templates/Databases'
+      link_templates:
+        - 'Template OS Linux'
+      status: enabled
+      state: present
+      inventory_mode: automatic
+      ipmi_authtype: 1
+      ipmi_privilege: 4
+      ipmi_username: vlada
+      ipmi_password: zabpassword
+      interfaces:
+        - 
+          type: 1
+          main: 1
+          useip: 1
+          ip: "{{ inventory_hostname }}"
+          dns: ""
+          port: 10050
+    when: 
+      - inventory_hostname  in groups['zabbix_db'] or inventory_hostname not in groups['zabbix_server'] 
+
+
+  - name: Get hostgroup info
+    zabbix_group_info:
+      server_url: http://{{ groups['zabbix_server'][0] }}
+      login_user: vlada
+      login_password: zabpassword
+      hostgroup_name:
+        - 'Linux servers'
+        - 'Templates/Databases'
+        - 'Zabbix servers'
+      timeout: 10
+
+  - name: Reduce host inventory information to provided keys
+    zabbix_host_info:
+      server_url: http://{{ groups['zabbix_server'][0] }}
+      login_user: vlada
+      login_password: zabpassword
+      host_name: "{{ inventory_hostname }}"
+      host_inventory:
+        - os
+        - tag
+      host_ip: "{{ inventory_hostname }}"
+      timeout: 10
+      exact_match: no
+      remove_duplicate: yes
+             
+
+     
+          
+   
+                   

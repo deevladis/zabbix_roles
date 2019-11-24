@@ -1,0 +1,121 @@
+---
+  - name: disable selinux
+    selinux:
+      state: disabled
+
+
+  - name: restarting
+    reboot:
+
+
+
+
+  - name: install mariadb server
+    dnf: 
+      name: mariadb-server
+
+
+  - name: start mariadb
+    service:
+      name: mariadb
+      state: started
+      enabled: yes
+
+ 
+  - name: create MariaDB log directory
+    file: path=/viar/log/mariadb state=directory owner=mysql group=mysql mode=0755
+  
+  
+  - name: replace MariaDB configuration file
+    template: src=mariadb-server.cnf dest=/etc/my.cnf.d/mariadb-server.cnf
+    notify:
+      - restart mariadb
+  
+ 
+  - name: remove anonymus user
+    mysql_user:
+      name: ''
+      host_all: yes
+      state: absent
+   
+  
+  - name: remove test db
+    mysql_db:
+      name: test
+      state: absent
+
+  - name: Disallow MariaDB remote root login
+    command: 'mysql -NBe "{{ item }}"'
+    with_items:
+      - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+    changed_when: false
+  
+  
+  - name: Create zabbix database 
+    mysql_db:
+      name: zabbix
+      state: present
+
+
+  - name: Create zabbix database user with  all database privileges
+    mysql_user:
+      name: zabbix
+      password: zabpassword
+      host: "{{zabbix_server}}"  
+      priv: '*.*:ALL,GRANT'
+      state: present
+      login_user: root
+
+      # with_items:
+            # - "{{ groups['zabbix_server'] }}"
+      #login_password: zabpassword
+      
+  
+ 
+  - name: Copy database dump file
+    copy:
+      src: zabbix_dump.sql
+      dest: /tmp
+            
+      
+      
+  - name: Restore database
+    mysql_db:
+      name: zabbix
+      state: import
+      target: /tmp/zabbix_dump.sql
+         
+   
+  
+  - name: open firewall ports for mariadb
+    firewalld:
+      port: 3306/tcp
+      permanent: true
+      state: enabled
+ 
+ 
+ 
+  - name: restart firewall
+    service:
+      name: firewalld
+      state: restarted
+
+
+ 
+  - name: restart mariadb
+    service:
+      name: mariadb
+      state: restarted
+
+
+
+
+
+
+
+
+
+
+
+
+

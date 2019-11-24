@@ -1,0 +1,12 @@
+
+[all:vars]
+ansible_user=root
+
+
+[zabbix_server]
+10.26.34.221                                      
+[zabbix_db]
+10.26.34.146
+[test]
+10.26.34.31
+#10.26.34.55
